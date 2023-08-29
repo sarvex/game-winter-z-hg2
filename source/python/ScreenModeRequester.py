@@ -72,7 +72,9 @@ def gui_ScreenModeRequester():
 
 		if hg.ImGuiBeginCombo("Screen size", modes[current_monitor][current_mode].name):
 			for i in range(len(modes[current_monitor])):
-				f = hg.ImGuiSelectable(modes[current_monitor][i].name+"##"+str(i), current_mode == i)
+				f = hg.ImGuiSelectable(
+					f"{modes[current_monitor][i].name}##{str(i)}", current_mode == i
+				)
 				if f:
 					current_mode = i
 			hg.ImGuiEndCombo()
@@ -85,7 +87,7 @@ def gui_ScreenModeRequester():
 		hg.ImGuiSameLine()
 		cancel=hg.ImGuiButton("Quit")
 	hg.ImGuiEndFrame(0)
-	
+
 	if ok: return "ok"
 	elif cancel: return "quit"
 	else: return ""
@@ -98,6 +100,7 @@ def request_screen_mode(p_ratio_filter=0):
 	monitors = hg.GetMonitors()
 	monitors_names = []
 	modes = []
+	epsilon = 0.01
 	for i in range(monitors.size()):
 		monitors_names.append(hg.GetMonitorName(monitors.at(i))+str(i))
 		f, m = hg.GetMonitorModes(monitors.at(i))
@@ -105,13 +108,12 @@ def request_screen_mode(p_ratio_filter=0):
 		for j in range(m.size()):
 			md=m.at(j)
 			rect = md.rect
-			epsilon = 0.01
 			r = (rect.ex - rect.sx) / (rect.ey - rect.sy)
 			if ratio_filter == 0 or r - epsilon < ratio_filter < r + epsilon:
 				filtered_modes.append(md)
 		modes.append(filtered_modes)
 	select=""
-	while select=="":
+	while not select:
 		select=gui_ScreenModeRequester()
 		hg.SetView2D(0, 0, 0, res_w, res_h, -1, 1, hg.CF_Color | hg.CF_Depth, hg.Color.Black, 1, 0)
 		hg.Frame()
@@ -119,10 +121,7 @@ def request_screen_mode(p_ratio_filter=0):
 
 	if select=="ok":
 
-		if flag_windowed:
-			smr_screenMode=hg.Windowed
-		else:
-			smr_screenMode=screenModes[current_monitor]
+		smr_screenMode = hg.Windowed if flag_windowed else screenModes[current_monitor]
 		rect=modes[current_monitor][current_mode].rect
 		smr_resolution.x,smr_resolution.y=rect.ex-rect.sx,rect.ey-rect.sy
 		hg.RenderShutdown()

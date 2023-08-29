@@ -257,8 +257,7 @@ class ParticlesEngine:
 		self.particles_cnt = 0
 		self.particles_cnt_f = 0
 		self.particles = []
-		for n in range(self.num_particles):
-			self.particles.append(Particle())
+		self.particles.extend(Particle() for _ in range(self.num_particles))
 
 	def draw(self, position, scrool_x_speed):
 		if Main.collision_time < self.flames_delay:
@@ -356,24 +355,30 @@ def init_sprites():
 					}
 	# Ship frames:
 	for n in range(4):
-		Main.sprites["ship"].append(Sprite("ship_" + str(n) + ".png", Main.game_scale, hg.Vec2(28, 20)))
+		Main.sprites["ship"].append(
+			Sprite(f"ship_{str(n)}.png", Main.game_scale, hg.Vec2(28, 20))
+		)
 
 	# Numbers font:
 	for n in range(10):
-		Main.sprites["numbers"].append(Sprite("" + str(n) + ".png", Main.game_scale))
-		Main.sprites["min_numbers"].append(Sprite("min" + str(n) + ".png", Main.game_scale))
+		Main.sprites["numbers"].append(Sprite(f"{str(n)}.png", Main.game_scale))
+		Main.sprites["min_numbers"].append(Sprite(f"min{str(n)}.png", Main.game_scale))
 
 	# Pillars:
 	for n in range(4):
-		Main.sprites["pillars"].append(Sprite("pillar_" + str(n) + ".png", Main.game_scale, hg.Vec2(0, 0)))
+		Main.sprites["pillars"].append(
+			Sprite(f"pillar_{str(n)}.png", Main.game_scale, hg.Vec2(0, 0))
+		)
 
 	# Parallaxes:
 	for key in ["front2bottom", "front2top", "front1bottom", "front1top", "ground", "bg1", "bg2", "bg3", "bg3b"]:
-		Main.sprites["parallaxes"].append(Sprite("" + key + ".png", Main.game_scale, hg.Vec2(0, 0)))
+		Main.sprites["parallaxes"].append(
+			Sprite(f"{key}.png", Main.game_scale, hg.Vec2(0, 0))
+		)
 
 	# Vapors:
 	for key in ["vapor0", "vapor1"]:
-		Main.sprites["vapors"].append(Sprite("" + key + ".png", Main.game_scale))
+		Main.sprites["vapors"].append(Sprite(f"{key}.png", Main.game_scale))
 
 def draw_flash():
 	Main.collision_time += Main.delta_t
@@ -386,10 +391,9 @@ def draw_flash():
 
 def draw_score():
 	digits = [int(x) for x in list(str(Main.score))]
-	total_width = 0  # total width of all numbers to be printed
-	for digit in digits:
-		total_width += Main.sprites['numbers'][digit].get_width()
-
+	total_width = sum(
+		Main.sprites['numbers'][digit].get_width() for digit in digits
+	)
 	x_offset = 0.5 - convx(total_width) / 2
 
 	for digit in digits:
@@ -420,7 +424,7 @@ def draw_score_panel():
 def reset_pillars():
 	Main.pillars_doors = []
 	x = Main.original_resolution.x
-	for n in range(Main.num_doors):
+	for _ in range(Main.num_doors):
 		x += (Main.original_resolution.x + 26) / Main.num_doors
 		Main.pillars_doors.append(SpriteInstance(Main.sprites["pillars"][int(uniform(0, 4))], hg.Vec2(convx(x), 0)))
 		Main.pillars_doors.append(SpriteInstance(Main.sprites["pillars"][int(uniform(0, 4))], hg.Vec2(convx(x), 0)))
@@ -428,7 +432,7 @@ def reset_pillars():
 
 	Main.pillars_bottom = []
 	x = Main.original_resolution.x
-	for n in range(Main.num_pillars_bottom):
+	for _ in range(Main.num_pillars_bottom):
 		x += (Main.original_resolution.x + 26) / Main.num_pillars_bottom
 		Main.pillars_bottom.append(SpriteInstance(Main.sprites["pillars"][int(uniform(0, 4))], hg.Vec2(convx(x), 0)))
 		Main.pillars_bottom[-1].position.y = random_pillar_bottom_y()
@@ -575,7 +579,7 @@ def parallax_scrolling():
 					 convx(256), convx(256)]
 	x_step = Main.scrolling_speed
 	for i in range(len(Main.scrolls_x)):
-		if i == 3 or i == 5 or i == 7:
+		if i in [3, 5, 7]:
 			Main.scrolls_x[i] = x_step * Main.delta_t
 		else:
 			Main.scrolls_x[i] -= x_step * Main.delta_t
